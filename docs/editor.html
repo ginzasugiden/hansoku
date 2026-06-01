@@ -3,8 +3,73 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AI文言生成 — HANASABI</title>
+<title>メッセージ作成 — HANASABI</title>
 <link rel="stylesheet" href="assets/style.css">
+<style>
+.msg-type-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+.msg-tab {
+  padding: 8px 18px; border-radius: var(--radius);
+  border: 1px solid var(--c-border); background: var(--c-surface);
+  cursor: pointer; font-size: 13px; font-weight: 500;
+  transition: all .15s;
+}
+.msg-tab.active {
+  background: var(--c-dark); color: #fff; border-color: var(--c-dark);
+}
+
+/* Flex Messageプレビュー */
+.flex-preview {
+  background: #b2dfdb;
+  border-radius: var(--radius);
+  padding: 16px;
+  min-height: 200px;
+}
+.flex-bubble {
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 300px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+.flex-hero img {
+  width: 100%; aspect-ratio: 20/13;
+  object-fit: cover; display: block;
+}
+.flex-body { padding: 14px 14px 8px; }
+.flex-body .flex-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; line-height: 1.4; }
+.flex-body .flex-text { font-size: 12px; color: #666; line-height: 1.5; margin-bottom: 8px; }
+.flex-body .flex-price { font-weight: 700; color: var(--c-primary); font-size: 15px; }
+.flex-footer { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+.flex-btn {
+  display: block; text-align: center;
+  padding: 9px; border-radius: 6px;
+  font-size: 12px; font-weight: 600; text-decoration: none;
+}
+.flex-btn-primary { background: var(--c-primary); color: #fff; }
+.flex-btn-secondary { background: var(--c-surface2); color: var(--c-text); border: 1px solid var(--c-border); }
+
+/* カルーセルプレビュー */
+.carousel-preview {
+  display: flex; gap: 10px; overflow-x: auto;
+  padding: 8px 4px; background: #b2dfdb; border-radius: var(--radius);
+}
+.carousel-card {
+  min-width: 140px; background: #fff;
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+}
+.carousel-card img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.carousel-card-body { padding: 8px; font-size: 11px; }
+.carousel-card-name { font-weight: 600; line-height: 1.3; margin-bottom: 4px; }
+.carousel-card-price { color: var(--c-primary); font-weight: 700; }
+
+.coupon-info-banner {
+  background: rgba(243,156,18,.1); border: 1px solid var(--c-gold);
+  border-radius: var(--radius); padding: 10px 14px;
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; margin-bottom: 16px;
+}
+</style>
 </head>
 <body>
 
@@ -19,17 +84,37 @@
 </header>
 
 <div class="container">
-  <div class="page-title">✨ AI文言生成 <small>3つのAIが販促文言を提案します</small></div>
+  <div class="page-title">✨ メッセージ作成 <small>メッセージタイプを選んでAIが文言を提案</small></div>
 
   <div class="steps">
     <div class="step done"><div class="step-num">✓</div><div class="step-label">商品選択</div></div>
     <div class="step-line"></div>
-    <div class="step active"><div class="step-num">2</div><div class="step-label">AI文言生成</div></div>
+    <div class="step done"><div class="step-num">✓</div><div class="step-label">クーポン設定</div></div>
     <div class="step-line"></div>
-    <div class="step"><div class="step-num">3</div><div class="step-label">配信設定</div></div>
+    <div class="step active"><div class="step-num">3</div><div class="step-label">メッセージ作成</div></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-num">4</div><div class="step-label">配信</div></div>
   </div>
 
-  <!-- 設定パネル -->
+  <!-- クーポン情報バナー -->
+  <div id="coupon-banner" style="display:none" class="coupon-info-banner">
+    🎫 <span id="coupon-banner-text"></span>
+    <a id="coupon-banner-link" href="#" target="_blank" style="margin-left:auto;font-size:11px;color:var(--c-primary)">URLを確認</a>
+  </div>
+
+  <!-- メッセージタイプ選択 -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">📨 メッセージタイプ</div>
+    <div class="msg-type-tabs">
+      <button class="msg-tab active" data-type="text"    onclick="setMsgType('text')">💬 テキスト</button>
+      <button class="msg-tab"        data-type="image"   onclick="setMsgType('image')">🖼️ 画像</button>
+      <button class="msg-tab"        data-type="carousel" onclick="setMsgType('carousel')">🃏 カルーセル</button>
+      <button class="msg-tab"        data-type="flex"    onclick="setMsgType('flex')">✨ Flex Message</button>
+    </div>
+    <div id="type-desc" style="font-size:12px;color:var(--c-muted)">シンプルなテキストメッセージをLINEで配信します</div>
+  </div>
+
+  <!-- 生成設定 -->
   <div class="card" style="margin-bottom:16px">
     <div class="card-title">⚙️ 生成設定</div>
     <div class="grid-2">
@@ -54,53 +139,60 @@
         </select>
       </div>
     </div>
-    <div class="grid-2">
-      <div class="form-group" style="margin:0">
-        <label class="form-label">クーポン発行（任意）</label>
-        <div style="display:flex;gap:8px">
-          <input class="form-control" id="discount-rate" type="number" min="1" max="50" placeholder="割引率 %" style="width:120px">
-          <input class="form-control" id="coupon-days" type="number" min="1" max="30" value="7" style="width:80px">
-          <span style="padding:9px 0;font-size:13px;color:var(--c-muted)">日間有効</span>
-        </div>
-      </div>
-      <div class="form-group" style="margin:0;display:flex;align-items:flex-end">
-        <button class="btn btn-primary" style="width:100%" onclick="generateAI()" id="gen-btn">
-          🤖 3つのAIで一括生成
-        </button>
-      </div>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn btn-primary" style="min-width:200px" onclick="generateAI()" id="gen-btn">
+        🤖 3つのAIで一括生成
+      </button>
     </div>
   </div>
 
-  <!-- 選択商品一覧 -->
+  <!-- 選択商品 -->
   <div id="selected-products" style="margin-bottom:16px"></div>
 
   <!-- AI生成結果 -->
   <div id="ai-results"></div>
 
-  <!-- 選択した文言の編集 -->
+  <!-- 文言選択後の編集 + プレビュー -->
   <div id="editor-section" style="display:none">
-    <div class="card" style="margin-top:16px">
-      <div class="card-title">✏️ 選択した文言を編集</div>
-      <div class="form-group">
-        <label class="form-label">使用モデル</label>
-        <div id="selected-model-badge"></div>
+    <div class="grid-2" style="align-items:start;margin-top:16px">
+      <!-- 編集エリア -->
+      <div class="card">
+        <div class="card-title">✏️ 文言を編集</div>
+        <div style="margin-bottom:8px">
+          <span id="selected-model-badge"></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">キャッチコピー</label>
+          <input class="form-control" id="edit-catchcopy" oninput="updatePreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">本文メッセージ</label>
+          <textarea class="form-control" id="edit-maintext" rows="5" oninput="updatePreview()"></textarea>
+        </div>
+        <!-- 画像タイプ用 -->
+        <div id="image-extra" style="display:none">
+          <div class="form-group">
+            <label class="form-label">タップ先URL（省略時は商品ページ）</label>
+            <input class="form-control" id="edit-linkurl" placeholder="https://item.rakuten.co.jp/..." oninput="updatePreview()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">LINEテキスト（最終確認）</label>
+          <textarea class="form-control" id="edit-linetext" rows="5"></textarea>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">キャッチコピー</label>
-        <input class="form-control" id="edit-catchcopy">
+
+      <!-- プレビュー -->
+      <div class="card">
+        <div class="card-title">📱 LINEプレビュー</div>
+        <div id="preview-area"></div>
       </div>
-      <div class="form-group">
-        <label class="form-label">本文メッセージ</label>
-        <textarea class="form-control" id="edit-maintext" rows="5"></textarea>
-      </div>
-      <div class="form-group">
-        <label class="form-label">LINE 送信テキスト（最終確認）</label>
-        <textarea class="form-control" id="edit-linetext" rows="6"></textarea>
-      </div>
-      <div style="display:flex;gap:10px;justify-content:flex-end">
-        <button class="btn btn-outline" onclick="saveToScheduler()">📅 スケジュール配信へ</button>
-        <button class="btn btn-success" onclick="sendNow()">📱 今すぐ配信</button>
-      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <a href="coupon.html" class="btn btn-outline">← クーポン設定に戻る</a>
+      <button class="btn btn-outline" onclick="saveToScheduler()">📅 スケジュール配信へ</button>
+      <button class="btn btn-success" onclick="sendNow()">📱 今すぐ配信</button>
     </div>
   </div>
 </div>
@@ -110,33 +202,61 @@
 <script src="assets/app.js"></script>
 <script>
 let selectedResult = null;
+let currentMsgType = 'text';
 
-// 選択商品表示
+const TYPE_DESC = {
+  text:     'シンプルなテキストメッセージをLINEで配信します',
+  image:    '商品画像をメインにしたリッチメッセージで配信します',
+  carousel: '選択した商品をカルーセル（横スクロール）形式で一覧配信します',
+  flex:     '商品画像・価格・AI文言・クーポンボタンを含むリッチカードで配信します'
+};
+
+function setMsgType(type) {
+  currentMsgType = type;
+  document.querySelectorAll('.msg-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.type === type);
+  });
+  document.getElementById('type-desc').textContent = TYPE_DESC[type];
+  document.getElementById('image-extra').style.display = type === 'image' ? '' : 'none';
+  updatePreview();
+}
+
+// ── クーポンバナー ───────────────────────────────────────
+function renderCouponBanner() {
+  const coupon = store.coupon;
+  const banner = document.getElementById('coupon-banner');
+  if (!coupon) { banner.style.display = 'none'; return; }
+  banner.style.display = 'flex';
+  document.getElementById('coupon-banner-text').textContent =
+    `クーポン発行済み: ${coupon.couponCode} (${coupon.discountRate}%OFF) — ${coupon.startDate?.substring(0,10)} 〜 ${coupon.endDate?.substring(0,10)}`;
+  document.getElementById('coupon-banner-link').href = coupon.couponUrl || '#';
+}
+
+// ── 選択商品表示 ─────────────────────────────────────────
 function renderSelectedProducts() {
   const products = store.products;
   const el = document.getElementById('selected-products');
   if (products.length === 0) {
-    el.innerHTML = '<div class="card" style="text-align:center;padding:24px"><p>商品が選択されていません。<a href="products.html">商品選択に戻る</a></p></div>';
+    el.innerHTML = '<div class="card" style="text-align:center;padding:16px"><p>商品が選択されていません。<a href="products.html">商品選択に戻る</a></p></div>';
     return;
   }
   el.innerHTML = `
     <div class="card">
       <div class="card-title">対象商品（${products.length}件）</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
         ${products.map(p => `
           <div style="display:flex;align-items:center;gap:8px;background:var(--c-surface2);padding:8px 12px;border-radius:var(--radius)">
-            <img src="${p.imageUrl || ''}" style="width:36px;height:36px;object-fit:cover;border-radius:4px" onerror="this.style.display='none'">
+            <img src="${p.imageUrl || ''}" style="width:32px;height:32px;object-fit:cover;border-radius:4px" onerror="this.style.display='none'">
             <div>
               <div style="font-size:12px;font-weight:600">${p.name.substring(0,20)}</div>
               <div style="font-size:11px;color:var(--c-muted)">${fmtPrice(p.price)}</div>
             </div>
-          </div>
-        `).join('')}
+          </div>`).join('')}
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
+// ── AI生成 ───────────────────────────────────────────────
 async function generateAI() {
   const products = store.products;
   if (products.length === 0) { toast('商品を選択してください', 'error'); return; }
@@ -146,27 +266,16 @@ async function generateAI() {
   btn.textContent = '⏳ 生成中...（30〜60秒かかります）';
 
   const context = {
-    target: document.getElementById('target').value,
-    tone:   document.getElementById('tone').value
+    target:      document.getElementById('target').value,
+    tone:        document.getElementById('tone').value,
+    messageType: currentMsgType
   };
 
-  // クーポン発行
-  const discountRate = parseInt(document.getElementById('discount-rate').value);
-  if (discountRate > 0) {
-    try {
-      const days = parseInt(document.getElementById('coupon-days').value) || 7;
-      const end = new Date(Date.now() + days * 86400000);
-      const coupon = await gasPost('createCoupon', {
-        itemCode: products.length === 1 ? products[0].itemCode : '',
-        discountRate,
-        period: { end: formatDateForAPI(end) }
-      });
-      store.coupon = coupon;
-      context.couponCode = coupon.couponCode;
-      toast(`✅ クーポン発行: ${coupon.couponCode}`);
-    } catch (e) {
-      toast(`⚠️ クーポン発行失敗: ${e.message}`, 'error');
-    }
+  const coupon = store.coupon;
+  if (coupon) {
+    context.couponCode    = coupon.couponCode;
+    context.discountRate  = coupon.discountRate;
+    context.couponUrl     = coupon.couponUrl;
   }
 
   document.getElementById('ai-results').innerHTML = `
@@ -176,7 +285,6 @@ async function generateAI() {
     </div>`;
 
   try {
-    // 商品が複数の場合は最初の商品を代表として使用
     const res = await gasPost('generateAI', { product: products[0], context });
     store.aiResults = res;
     renderAIResults(res.results);
@@ -191,9 +299,9 @@ async function generateAI() {
 
 function renderAIResults(results) {
   const models = [
-    { key: 'claude', label: 'Claude',   cls: 'claude' },
-    { key: 'gpt',    label: 'ChatGPT',  cls: 'gpt' },
-    { key: 'gemini', label: 'Gemini',   cls: 'gemini' }
+    { key: 'claude', label: 'Claude',  cls: 'claude' },
+    { key: 'gpt',    label: 'ChatGPT', cls: 'gpt' },
+    { key: 'gemini', label: 'Gemini',  cls: 'gemini' }
   ];
 
   document.getElementById('ai-results').innerHTML = `
@@ -227,23 +335,124 @@ function selectResult(modelKey) {
   document.getElementById('selected-model-badge').innerHTML =
     `<span class="badge ${badges[modelKey]}">${selectedResult.model}</span> の文言を選択中`;
 
+  updatePreview();
   document.getElementById('editor-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── プレビュー ────────────────────────────────────────────
+function updatePreview() {
+  const area = document.getElementById('preview-area');
+  const products = store.products;
+  const p = products[0] || {};
+  const catchCopy = document.getElementById('edit-catchcopy')?.value || p.name || '';
+  const mainText  = document.getElementById('edit-maintext')?.value  || '';
+  const coupon    = store.coupon;
+
+  switch (currentMsgType) {
+    case 'text':
+      area.innerHTML = `
+        <div style="background:#b2dfdb;border-radius:var(--radius);padding:16px;min-height:120px">
+          <div style="background:#fff;border-radius:12px 12px 12px 4px;padding:12px 14px;max-width:80%;box-shadow:0 1px 4px rgba(0,0,0,.12);font-size:13px;line-height:1.7;white-space:pre-wrap">${document.getElementById('edit-linetext')?.value || '（文言を選択してください）'}</div>
+        </div>`;
+      break;
+
+    case 'image':
+      const imgUrl  = p.imageUrl || 'https://placehold.co/600x400/f8f9fa/adb5bd?text=商品画像';
+      const linkUrl = document.getElementById('edit-linkurl')?.value || p.itemUrl || '#';
+      area.innerHTML = `
+        <div style="background:#b2dfdb;border-radius:var(--radius);padding:16px">
+          <a href="${linkUrl}" target="_blank" style="display:block;border-radius:10px;overflow:hidden">
+            <img src="${imgUrl}" style="width:100%;border-radius:10px" onerror="this.src='https://placehold.co/600x400/f8f9fa/adb5bd?text=No+Image'">
+          </a>
+          <div style="margin-top:8px;font-size:11px;color:#555;text-align:center">タップで商品ページへ</div>
+        </div>`;
+      break;
+
+    case 'carousel':
+      if (products.length === 0) {
+        area.innerHTML = '<p style="color:var(--c-muted);padding:16px;text-align:center">商品が選択されていません</p>';
+        break;
+      }
+      area.innerHTML = `
+        <div class="carousel-preview">
+          ${products.map(pr => `
+            <div class="carousel-card">
+              <img src="${pr.imageUrl || 'https://placehold.co/300x300/f8f9fa/adb5bd?text=No+Image'}"
+                   onerror="this.src='https://placehold.co/300x300/f8f9fa/adb5bd?text=No+Image'">
+              <div class="carousel-card-body">
+                <div class="carousel-card-name">${pr.name.substring(0, 25)}</div>
+                <div class="carousel-card-price">${fmtPrice(pr.price)}</div>
+              </div>
+            </div>`).join('')}
+        </div>`;
+      break;
+
+    case 'flex':
+      const imgFlex = p.imageUrl || 'https://placehold.co/1200x628/1a1a2e/ffffff?text=TOKYOFLOWER';
+      area.innerHTML = `
+        <div class="flex-preview">
+          <div class="flex-bubble">
+            <div class="flex-hero">
+              <img src="${imgFlex}" onerror="this.src='https://placehold.co/1200x628/1a1a2e/ffffff?text=TOKYOFLOWER'">
+            </div>
+            <div class="flex-body">
+              <div class="flex-title">${catchCopy || p.name || '商品名'}</div>
+              <div class="flex-text">${mainText.substring(0, 80) || '（AI文言が表示されます）'}</div>
+              <div class="flex-price">${fmtPrice(p.price)}</div>
+            </div>
+            <div class="flex-footer">
+              <a class="flex-btn flex-btn-primary" href="${p.itemUrl || '#'}" target="_blank">商品を見る</a>
+              ${coupon ? `<a class="flex-btn flex-btn-secondary" href="${coupon.couponUrl || '#'}" target="_blank">🎫 ${coupon.discountRate}%OFFクーポンを取得</a>` : ''}
+            </div>
+          </div>
+        </div>`;
+      break;
+  }
+}
+
+// ── 配信 ──────────────────────────────────────────────────
+function buildPayload() {
+  const product = store.products[0] || {};
+  const coupon  = store.coupon;
+  const catchCopy = document.getElementById('edit-catchcopy').value;
+  const mainText  = document.getElementById('edit-maintext').value;
+  const lineText  = document.getElementById('edit-linetext').value;
+
+  switch (currentMsgType) {
+    case 'text':
+      if (!lineText) throw new Error('メッセージ本文を入力してください');
+      return { type: 'text', content: lineText, coupon };
+
+    case 'image':
+      return {
+        type: 'rich',
+        content: {
+          imageUrl: product.imageUrl,
+          linkUrl:  document.getElementById('edit-linkurl').value || product.itemUrl,
+          altText:  catchCopy || product.name
+        },
+        coupon
+      };
+
+    case 'carousel':
+      if (store.products.length === 0) throw new Error('商品が選択されていません');
+      return { type: 'card', content: { products: store.products }, coupon };
+
+    case 'flex':
+      return {
+        type: 'flex',
+        product,
+        content: { catchCopy, mainText, lineText },
+        coupon
+      };
+  }
 }
 
 async function sendNow() {
   if (!confirm('今すぐLINE配信しますか？')) return;
-  const text = document.getElementById('edit-linetext').value;
   try {
-    const products = store.products;
-    const coupon = store.coupon;
-    let type = 'text', content = text;
-
-    if (products.length > 1) {
-      type = 'card';
-      content = { products };
-    }
-
-    await gasPost('sendLine', { type, content: type === 'text' ? text : content, couponCode: coupon?.couponCode });
+    const payload = buildPayload();
+    await gasPost('sendLine', payload);
     toast('✅ LINE配信しました！');
     setTimeout(() => location.href = 'index.html', 2000);
   } catch (e) {
@@ -252,23 +461,20 @@ async function sendNow() {
 }
 
 function saveToScheduler() {
-  const text = document.getElementById('edit-linetext').value;
-  const products = store.products;
-  // sessionStorageに一時保存してスケジューラへ
-  sessionStorage.setItem('hana_draft', JSON.stringify({
-    type: products.length > 1 ? 'card' : 'text',
-    content: products.length > 1 ? { products } : text,
-    coupon: store.coupon
-  }));
-  location.href = 'scheduler.html';
+  try {
+    const payload = buildPayload();
+    sessionStorage.setItem('hana_draft', JSON.stringify(payload));
+    location.href = 'scheduler.html';
+  } catch (e) {
+    toast(`❌ ${e.message}`, 'error');
+  }
 }
 
-function formatDateForAPI(d) {
-  return d.toISOString().replace('T', ' ').substring(0, 16);
-}
-
+// ── 初期化 ────────────────────────────────────────────────
+renderCouponBanner();
 renderSelectedProducts();
-// 生成結果が残っていれば表示
+updatePreview();
+
 const cached = store.aiResults;
 if (cached?.results) renderAIResults(cached.results);
 </script>

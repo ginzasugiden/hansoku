@@ -112,6 +112,8 @@ function dispatchLineMessage_(body) {
       return sendRichMessage(content.imageUrl, content.linkUrl, content.altText, content.text);
     case 'card':
       return sendCardMessage(content.products);
+    case 'flex':
+      return sendFlexMessage(body.product, body.content, body.coupon);
     default:
       throw new Error(`Unknown LINE message type: ${type}`);
   }

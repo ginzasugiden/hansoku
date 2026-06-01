@@ -166,6 +166,62 @@ function verifyLineSignature_(body, signature) {
 }
 
 /**
+ * Flex Message（バブル形式）をブロードキャスト送信
+ * @param {Object} product - 商品情報
+ * @param {Object} content - { catchCopy, mainText }
+ * @param {Object|null} coupon - { discountRate, couponUrl }
+ * @returns {Object}
+ */
+function sendFlexMessage(product, content, coupon) {
+  const flexContent = {
+    type: 'bubble',
+    hero: {
+      type: 'image',
+      url: product.imageUrl || 'https://placehold.co/1200x628/1a1a2e/ffffff?text=TOKYOFLOWER',
+      size: 'full',
+      aspectRatio: '20:13',
+      aspectMode: 'cover',
+      action: { type: 'uri', uri: product.itemUrl || 'https://www.rakuten.co.jp' }
+    },
+    body: {
+      type: 'box',
+      layout: 'vertical',
+      contents: [
+        { type: 'text', text: content.catchCopy || product.name, weight: 'bold', size: 'xl', wrap: true },
+        { type: 'text', text: content.mainText || '', size: 'sm', color: '#666666', wrap: true, margin: 'md' },
+        { type: 'text', text: `¥${Number(product.price).toLocaleString()}`, weight: 'bold', size: 'lg', color: '#c0392b', margin: 'md' }
+      ]
+    },
+    footer: {
+      type: 'box',
+      layout: 'vertical',
+      spacing: 'sm',
+      contents: [
+        {
+          type: 'button',
+          style: 'primary',
+          color: '#c0392b',
+          action: { type: 'uri', label: '商品を見る', uri: product.itemUrl || 'https://www.rakuten.co.jp' }
+        },
+        ...(coupon ? [{
+          type: 'button',
+          style: 'secondary',
+          action: { type: 'uri', label: `🎫 ${coupon.discountRate}%OFFクーポンを取得`, uri: coupon.couponUrl || 'https://www.rakuten.co.jp' }
+        }] : [])
+      ]
+    }
+  };
+
+  return callLineAPI_('/message/broadcast', {
+    messages: [{
+      type: 'flex',
+      altText: content.catchCopy || product.name,
+      contents: flexContent
+    }]
+  });
+}
+
+/**
  * LINE ブロードキャスト送信テスト関数（GASエディタから手動実行）
  */
 function testLineBroadcast() {
