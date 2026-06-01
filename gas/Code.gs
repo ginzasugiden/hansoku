@@ -69,7 +69,8 @@ function doPost(e) {
           body.startDate,
           body.endDate,
           body.memberAvailMaxCount,
-          body.combineFlag
+          body.combineFlag,
+          body.issueCount
         ));
 
       case 'sendLine':

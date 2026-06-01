@@ -6,46 +6,43 @@
 <title>クーポン設定 — HANASABI</title>
 <link rel="stylesheet" href="assets/style.css">
 <style>
-.coupon-accordion {
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height .3s ease;
-}
-.coupon-accordion.open {
-  max-height: 900px;
-}
-.radio-group { display: flex; gap: 12px; flex-wrap: wrap; }
-.radio-label {
-  display: flex; align-items: center; gap: 6px;
-  cursor: pointer; padding: 8px 16px;
+/* トグル・ボタン群 */
+.toggle-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.toggle-btn {
+  padding: 8px 20px;
   border: 1px solid var(--c-border);
   border-radius: var(--radius);
-  font-size: 14px;
-  transition: all .15s;
+  background: var(--c-surface);
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .15s;
 }
-.radio-label input[type=radio] { display: none; }
-.radio-label.checked {
-  border-color: var(--c-primary);
-  background: rgba(192,57,43,.07);
-  color: var(--c-primary);
-  font-weight: 600;
+.toggle-btn.active {
+  background: var(--c-dark); color: #fff; border-color: var(--c-dark);
 }
-.readonly-products {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  padding: 10px 0;
-}
-.readonly-product-chip {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--c-surface2);
-  border: 1px solid var(--c-border);
-  border-radius: 99px;
-  padding: 4px 12px 4px 4px;
+
+/* 商品バッジ */
+.product-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--c-surface2); border: 1px solid var(--c-border);
+  border-radius: 99px; padding: 4px 8px 4px 4px;
   font-size: 12px;
 }
-.readonly-product-chip img {
-  width: 24px; height: 24px;
-  object-fit: cover; border-radius: 50%;
+.product-badge img { width: 24px; height: 24px; object-fit: cover; border-radius: 50%; }
+.product-badge .rm-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--c-muted); color: #fff;
+  font-size: 10px; line-height: 1; cursor: pointer; border: none;
+  margin-left: 2px; flex-shrink: 0;
 }
+.product-badge .rm-btn:hover { background: var(--c-primary); }
+
+/* アコーディオン */
+.accordion { overflow: hidden; max-height: 0; transition: max-height .3s ease; }
+.accordion.open { max-height: 1200px; }
+
+/* サブフォーム */
+.sub-field { margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -73,112 +70,128 @@
     <div class="step"><div class="step-num">4</div><div class="step-label">配信</div></div>
   </div>
 
-  <!-- 選択商品確認 -->
-  <div class="card" style="margin-bottom:16px" id="products-summary"></div>
+  <!-- 対象商品 -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title">対象商品</div>
+    <div id="product-badges" style="display:flex;flex-wrap:wrap;gap:8px;min-height:32px"></div>
+    <div id="no-products-msg" style="display:none;color:var(--c-muted);font-size:13px;padding:8px 0">
+      商品が選択されていません。<a href="products.html">← 商品選択に戻る</a>
+    </div>
+  </div>
 
-  <!-- クーポン発行選択 -->
+  <!-- クーポン発行 -->
   <div class="card" style="margin-bottom:16px">
     <div class="card-title">🎫 クーポン発行</div>
-    <div class="radio-group" style="margin-bottom:16px">
-      <label class="radio-label checked" id="lbl-no">
-        <input type="radio" name="issue" value="no" checked onchange="onIssueChange(this)">
-        発行しない
-      </label>
-      <label class="radio-label" id="lbl-yes">
-        <input type="radio" name="issue" value="yes" onchange="onIssueChange(this)">
-        発行する
-      </label>
+    <div class="toggle-group" style="margin-bottom:16px">
+      <button class="toggle-btn active" id="btn-no"  onclick="setIssue(false)">発行しない</button>
+      <button class="toggle-btn"        id="btn-yes" onclick="setIssue(true)">発行する</button>
     </div>
 
-    <!-- アコーディオン -->
-    <div class="coupon-accordion" id="coupon-form">
+    <div class="accordion" id="coupon-accordion">
       <hr style="border:none;border-top:1px solid var(--c-border);margin-bottom:20px">
 
       <!-- 割引タイプ -->
       <div class="form-group">
         <label class="form-label">割引タイプ</label>
-        <div class="radio-group" id="dtype-group">
-          <label class="radio-label checked" id="lbl-rate">
-            <input type="radio" name="dtype" value="2" checked onchange="onDiscountTypeChange(this)">
-            定率（%OFF）
-          </label>
-          <label class="radio-label" id="lbl-fixed">
-            <input type="radio" name="dtype" value="1" onchange="onDiscountTypeChange(this)">
-            定額（円引き）
-          </label>
-          <label class="radio-label" id="lbl-free">
-            <input type="radio" name="dtype" value="4" onchange="onDiscountTypeChange(this)">
-            送料無料
-          </label>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="btn-rate"  onclick="setDiscountType(2)">定率（%OFF）</button>
+          <button class="toggle-btn"        id="btn-fixed" onclick="setDiscountType(1)">定額（円引き）</button>
+          <button class="toggle-btn"        id="btn-free"  onclick="setDiscountType(4)">送料無料</button>
         </div>
       </div>
 
       <!-- 割引値 -->
-      <div class="form-group" id="discount-value-group">
-        <label class="form-label" id="discount-value-label">割引率（%）</label>
+      <div class="form-group" id="discount-field">
+        <label class="form-label" id="discount-label">割引率（%）</label>
         <div style="display:flex;align-items:center;gap:8px">
           <input class="form-control" type="number" id="discount-value" min="1" max="99" value="10" style="width:120px">
           <span id="discount-unit" style="color:var(--c-muted)">%OFF</span>
         </div>
       </div>
 
-      <!-- 開始・終了日時 -->
-      <div class="grid-2">
-        <div class="form-group">
-          <label class="form-label">開始日時</label>
-          <div style="display:flex;gap:6px">
-            <input class="form-control" type="date" id="start-date" style="flex:1">
-            <input class="form-control" type="time" id="start-time" style="width:100px">
+      <!-- 有効期間 -->
+      <div class="form-group">
+        <label class="form-label">クーポン有効期間</label>
+        <div class="grid-2">
+          <div>
+            <div style="font-size:11px;color:var(--c-muted);margin-bottom:4px">開始</div>
+            <div style="display:flex;gap:6px">
+              <input class="form-control" type="date" id="start-date" style="flex:1" oninput="onStartDateChange()">
+              <input class="form-control" type="time" id="start-time" style="width:100px">
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--c-muted);margin-bottom:4px">終了</div>
+            <div style="display:flex;gap:6px">
+              <input class="form-control" type="date" id="end-date" style="flex:1">
+              <input class="form-control" type="time" id="end-time" style="width:100px" value="23:59">
+            </div>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">終了日時</label>
-          <div style="display:flex;gap:6px">
-            <input class="form-control" type="date" id="end-date" style="flex:1">
-            <input class="form-control" type="time" id="end-time" style="width:100px" value="23:59">
-          </div>
+      </div>
+
+      <!-- 全利用回数上限 -->
+      <div class="form-group">
+        <label class="form-label">クーポン全利用回数上限</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <input class="form-control" type="number" id="issue-count" min="1" max="1000" value="1000" style="width:120px">
+          <span style="color:var(--c-muted);font-size:13px">回（最大1000回）</span>
         </div>
       </div>
 
       <!-- 対象商品（読み取り専用） -->
       <div class="form-group">
         <label class="form-label">対象商品</label>
-        <div class="readonly-products" id="target-products"></div>
-        <div style="font-size:11px;color:var(--c-muted);margin-top:4px">※ 複数選択の場合は全商品対象クーポンになります</div>
+        <div id="coupon-target-desc" style="font-size:13px;padding:8px 0;color:var(--c-text)"></div>
+        <div style="font-size:11px;color:var(--c-muted)">※ 複数選択の場合は全商品対象クーポンになります</div>
       </div>
 
-      <!-- 利用上限・併用 -->
-      <div class="grid-2">
-        <div class="form-group" style="margin:0">
-          <label class="form-label">1ユーザーあたり利用上限</label>
+      <!-- 1ユーザーあたり利用上限 -->
+      <div class="form-group">
+        <label class="form-label">1ユーザーあたり利用上限</label>
+        <div class="toggle-group" style="margin-bottom:10px">
+          <button class="toggle-btn" id="btn-limit-count"    onclick="setMemberLimit(false)">回数を指定する</button>
+          <button class="toggle-btn active" id="btn-limit-unlimited" onclick="setMemberLimit(true)">無制限</button>
+        </div>
+        <div id="member-limit-field" style="display:none" class="sub-field">
           <div style="display:flex;align-items:center;gap:8px">
-            <input class="form-control" type="number" id="member-limit" min="0" value="0" style="width:100px">
-            <span style="color:var(--c-muted);font-size:13px">回（0=無制限）</span>
+            <input class="form-control" type="number" id="member-limit" min="1" value="1" style="width:100px">
+            <span style="color:var(--c-muted);font-size:13px">回</span>
           </div>
         </div>
-        <div class="form-group" style="margin:0">
-          <label class="form-label">他クーポンとの併用</label>
-          <div class="radio-group">
-            <label class="radio-label" id="lbl-combine-yes">
-              <input type="radio" name="combine" value="1" onchange="updateRadioStyle('combine')">
-              可
-            </label>
-            <label class="radio-label checked" id="lbl-combine-no">
-              <input type="radio" name="combine" value="0" checked onchange="updateRadioStyle('combine')">
-              不可
-            </label>
+      </div>
+
+      <!-- 利用金額・個数条件 -->
+      <div class="form-group">
+        <label class="form-label">利用金額・購入個数条件</label>
+        <div class="toggle-group" style="margin-bottom:10px">
+          <button class="toggle-btn active" id="btn-cond-none"  onclick="setCondition('')">指定しない</button>
+          <button class="toggle-btn"        id="btn-cond-price" onclick="setCondition('RS003')">金額条件</button>
+          <button class="toggle-btn"        id="btn-cond-qty"   onclick="setCondition('RS004')">個数条件</button>
+        </div>
+        <div id="condition-field" style="display:none" class="sub-field">
+          <div style="display:flex;align-items:center;gap:8px">
+            <input class="form-control" type="number" id="condition-value" min="1" placeholder="例: 3000" style="width:130px">
+            <span id="condition-unit" style="color:var(--c-muted);font-size:13px">円以上の購入に利用可能</span>
           </div>
+        </div>
+      </div>
+
+      <!-- 他クーポンとの併用 -->
+      <div class="form-group" style="margin:0">
+        <label class="form-label">他クーポンとの併用</label>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="btn-combine-no"  onclick="setCombine(0)">併用不可</button>
+          <button class="toggle-btn"        id="btn-combine-yes" onclick="setCombine(1)">併用可</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 次へボタン -->
+  <!-- ボタン -->
   <div style="display:flex;justify-content:flex-end;gap:12px">
     <a href="products.html" class="btn btn-outline">← 商品選択に戻る</a>
-    <button class="btn btn-primary" id="next-btn" onclick="goNext()">
-      次へ → メッセージ作成
-    </button>
+    <button class="btn btn-primary" id="next-btn" onclick="goNext()">次へ → メッセージ作成</button>
   </div>
 </div>
 
@@ -186,13 +199,17 @@
 
 <script src="assets/app.js"></script>
 <script>
+// ── 状態 ──────────────────────────────────────────────────
+let issuing       = false;
+let discountType  = 2;      // 1=定額 2=定率 4=送料無料
+let memberUnlimited = true;
+let selectedCondition = '';  // '' | 'RS003' | 'RS004'
+let combineFlag   = 0;
 
-// ── デフォルト開始時刻計算 ──────────────────────────────
+// ── 開始時刻デフォルト ────────────────────────────────────
 function getDefaultStartTime() {
   const now = new Date();
-  // 現在+65分
   const target = new Date(now.getTime() + 65 * 60 * 1000);
-  // 分を切り上げて次の00分へ
   if (target.getMinutes() > 0) {
     target.setHours(target.getHours() + 1);
     target.setMinutes(0);
@@ -203,114 +220,124 @@ function getDefaultStartTime() {
 }
 
 function toDateStr(d) {
-  // YYYY-MM-DD形式（ローカルタイム）
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const y   = d.getFullYear();
+  const m   = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
 function toTimeStr(d) {
-  // HH:00形式（常に00分）
   return `${String(d.getHours()).padStart(2, '0')}:00`;
 }
 
-// 初期値セット
+// 初期値
 const startDefault = getDefaultStartTime();
-const endDefault   = new Date(startDefault.getTime() + 7 * 24 * 60 * 60 * 1000);
 document.getElementById('start-date').value = toDateStr(startDefault);
 document.getElementById('start-time').value = toTimeStr(startDefault);
-document.getElementById('end-date').value   = toDateStr(endDefault);
+document.getElementById('end-date').value   = toDateStr(startDefault);  // 終了=開始と同日
 
-// 開始日時変更時に終了を +7日に追従
-document.getElementById('start-date').addEventListener('change', () => {
-  const sd = new Date(`${document.getElementById('start-date').value}T${document.getElementById('start-time').value}`);
-  if (!isNaN(sd)) {
-    const ed = new Date(sd.getTime() + 7 * 24 * 60 * 60 * 1000);
-    document.getElementById('end-date').value = toDateStr(ed);
-  }
-});
-
-// ── 選択商品表示 ────────────────────────────────────────
-function renderProductsSummary() {
-  const products = store.products;
-  const el = document.getElementById('products-summary');
-  if (products.length === 0) {
-    el.innerHTML = '<p style="text-align:center;padding:16px;color:var(--c-muted)">商品が選択されていません。<a href="products.html">商品選択に戻る</a></p>';
-    return;
-  }
-  el.innerHTML = `
-    <div class="card-title">対象商品（${products.length}件）</div>
-    <div style="display:flex;gap:12px;flex-wrap:wrap">
-      ${products.map(p => `
-        <div style="display:flex;align-items:center;gap:8px;background:var(--c-surface2);padding:8px 12px;border-radius:var(--radius)">
-          <img src="${p.imageUrl || ''}" style="width:32px;height:32px;object-fit:cover;border-radius:4px" onerror="this.style.display='none'">
-          <div>
-            <div style="font-size:12px;font-weight:600">${p.name.substring(0, 20)}</div>
-            <div style="font-size:11px;color:var(--c-muted)">${fmtPrice(p.price)}</div>
-          </div>
-        </div>
-      `).join('')}
-    </div>`;
-
-  // 対象商品チップ（クーポンフォーム内）
-  const chips = document.getElementById('target-products');
-  chips.innerHTML = products.map(p => `
-    <div class="readonly-product-chip">
-      <img src="${p.imageUrl || ''}" onerror="this.style.display='none'">
-      <span>${p.name.substring(0, 15)}</span>
-    </div>
-  `).join('') || '<span style="color:var(--c-muted);font-size:13px">全商品対象</span>';
+// 開始日変更 → 終了日も同じ日に連動
+function onStartDateChange() {
+  document.getElementById('end-date').value = document.getElementById('start-date').value;
 }
 
-// ── ラジオUI ────────────────────────────────────────────
-function updateRadioStyle(name) {
-  document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
-    r.parentElement.classList.toggle('checked', r.checked);
+// ── 商品バッジ ────────────────────────────────────────────
+function renderProductBadges() {
+  const products = store.products;
+  const container = document.getElementById('product-badges');
+  const noMsg     = document.getElementById('no-products-msg');
+  const targetDesc = document.getElementById('coupon-target-desc');
+
+  if (products.length === 0) {
+    container.innerHTML = '';
+    noMsg.style.display = '';
+    targetDesc.textContent = '（商品が選択されていません）';
+    return;
+  }
+  noMsg.style.display = 'none';
+  container.innerHTML = products.map((p, i) => `
+    <span class="product-badge">
+      <img src="${p.imageUrl || ''}" onerror="this.style.display='none'">
+      <span>${p.name.substring(0, 18)}</span>
+      <button class="rm-btn" onclick="removeProduct(${i})" title="削除">×</button>
+    </span>`).join('');
+
+  targetDesc.textContent = products.length === 1
+    ? `${products[0].name.substring(0, 30)}（単品指定）`
+    : `${products.length}件選択中 → 全商品対象クーポン`;
+}
+
+function removeProduct(index) {
+  const products = store.products;
+  products.splice(index, 1);
+  store.products = products;
+  renderProductBadges();
+}
+
+// ── トグル制御 ────────────────────────────────────────────
+function setActive(ids, activeId) {
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', id === activeId);
   });
 }
 
-function onIssueChange(el) {
-  const form = document.getElementById('coupon-form');
-  form.classList.toggle('open', el.value === 'yes');
-  updateRadioStyle('issue');
+function setIssue(yes) {
+  issuing = yes;
+  setActive(['btn-no', 'btn-yes'], yes ? 'btn-yes' : 'btn-no');
+  document.getElementById('coupon-accordion').classList.toggle('open', yes);
 }
 
-function onDiscountTypeChange(el) {
-  updateRadioStyle('dtype');
-  const isFree  = el.value === '4';
-  const isFixed = el.value === '1';
-  document.getElementById('discount-value-group').style.display = isFree ? 'none' : '';
-  document.getElementById('discount-value-label').textContent = isFixed ? '割引額（円）' : '割引率（%）';
-  document.getElementById('discount-unit').textContent = isFixed ? '円引き' : '%OFF';
-  if (!isFree) {
-    const input = document.getElementById('discount-value');
-    input.max = isFixed ? '99999' : '99';
-    if (!isFixed && parseInt(input.value) > 99) input.value = '10';
-  }
+function setDiscountType(type) {
+  discountType = type;
+  setActive(['btn-rate', 'btn-fixed', 'btn-free'],
+    type === 2 ? 'btn-rate' : type === 1 ? 'btn-fixed' : 'btn-free');
+  const isFree  = type === 4;
+  const isFixed = type === 1;
+  document.getElementById('discount-field').style.display = isFree ? 'none' : '';
+  document.getElementById('discount-label').textContent = isFixed ? '割引額（円）' : '割引率（%）';
+  document.getElementById('discount-unit').textContent  = isFixed ? '円引き' : '%OFF';
+  const inp = document.getElementById('discount-value');
+  inp.max = isFixed ? '99999' : '99';
+  if (!isFixed && parseInt(inp.value) > 99) inp.value = '10';
 }
 
-function getSelectedDiscountType() {
-  return parseInt(document.querySelector('input[name="dtype"]:checked').value);
+function setMemberLimit(unlimited) {
+  memberUnlimited = unlimited;
+  setActive(['btn-limit-count', 'btn-limit-unlimited'],
+    unlimited ? 'btn-limit-unlimited' : 'btn-limit-count');
+  document.getElementById('member-limit-field').style.display = unlimited ? 'none' : '';
 }
 
-// ── 次へ ────────────────────────────────────────────────
+function setCondition(type) {
+  selectedCondition = type;
+  setActive(['btn-cond-none', 'btn-cond-price', 'btn-cond-qty'],
+    type === '' ? 'btn-cond-none' : type === 'RS003' ? 'btn-cond-price' : 'btn-cond-qty');
+  document.getElementById('condition-field').style.display = type ? '' : 'none';
+  document.getElementById('condition-unit').textContent =
+    type === 'RS003' ? '円以上の購入に利用可能' : '個以上の購入に利用可能';
+}
+
+function setCombine(flag) {
+  combineFlag = flag;
+  setActive(['btn-combine-no', 'btn-combine-yes'],
+    flag === 0 ? 'btn-combine-no' : 'btn-combine-yes');
+}
+
+// ── 次へ ──────────────────────────────────────────────────
 async function goNext() {
-  const isIssue = document.querySelector('input[name="issue"]:checked').value === 'yes';
-
-  if (!isIssue) {
+  if (!issuing) {
     store.coupon = null;
     location.href = 'editor.html';
     return;
   }
 
   // バリデーション
-  const discountType = getSelectedDiscountType();
   const discountFactor = parseInt(document.getElementById('discount-value').value) || 0;
-  if (discountType !== 4 && (discountFactor < 1)) {
-    toast('割引値を入力してください', 'error'); return;
-  }
-  if (discountType === 2 && discountFactor > 99) {
+  if (discountType === 2 && (discountFactor < 1 || discountFactor > 99)) {
     toast('割引率は1〜99の間で入力してください', 'error'); return;
+  }
+  if (discountType === 1 && discountFactor < 1) {
+    toast('割引額は1以上で入力してください', 'error'); return;
   }
 
   const startDate = document.getElementById('start-date').value;
@@ -321,13 +348,16 @@ async function goNext() {
 
   const startMs = new Date(`${startDate}T${startTime}`).getTime();
   const endMs   = new Date(`${endDate}T${endTime}`).getTime();
-  const diffDays = Math.round((endMs - startMs) / 86400000);
-  if (diffDays < 1 || diffDays > 90) { toast('有効期間は1〜90日にしてください', 'error'); return; }
+  if (endMs <= startMs) { toast('終了日時は開始日時より後に設定してください', 'error'); return; }
+  const diffDays = (endMs - startMs) / 86400000;
+  if (diffDays > 90) { toast('有効期間は最大90日です', 'error'); return; }
 
   const products = store.products;
-  const itemCode = products.length === 1 ? products[0].itemCode : '';
-  const memberAvailMaxCount = parseInt(document.getElementById('member-limit').value) || 0;
-  const combineFlag = parseInt(document.querySelector('input[name="combine"]:checked').value);
+  if (products.length === 0) { toast('商品を選択してください', 'error'); return; }
+
+  const issueCount = parseInt(document.getElementById('issue-count').value) || 1000;
+  const memberAvailMaxCount = memberUnlimited ? 0 : (parseInt(document.getElementById('member-limit').value) || 1);
+  const conditionValue = document.getElementById('condition-value').value || '';
 
   const btn = document.getElementById('next-btn');
   btn.disabled = true;
@@ -335,13 +365,16 @@ async function goNext() {
 
   try {
     const coupon = await gasPost('createCoupon', {
-      itemCode,
+      itemCode: products.length === 1 ? products[0].itemCode : '',
       discountType,
       discountFactor,
       startDate: `${startDate}T${startTime}:00+09:00`,
       endDate:   `${endDate}T${endTime}:59+09:00`,
       memberAvailMaxCount,
-      combineFlag
+      combineFlag,
+      issueCount,
+      conditionType:  selectedCondition,
+      conditionValue
     });
     store.coupon = coupon;
     toast(`✅ クーポン発行: ${coupon.couponCode}`);
@@ -353,7 +386,8 @@ async function goNext() {
   }
 }
 
-renderProductsSummary();
+// ── 初期化 ────────────────────────────────────────────────
+renderProductBadges();
 </script>
 </body>
 </html>

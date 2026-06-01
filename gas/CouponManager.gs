@@ -16,11 +16,20 @@
  * @param {number} combineFlag        - 併用可否（1=可, 0=不可）
  * @returns {Object} { couponCode, couponUrl, discountType, discountFactor, startDate, endDate }
  */
-function createCoupon(itemCode, discountType, discountFactor, startDateStr, endDateStr, memberAvailMaxCount, combineFlag) {
-  discountType          = parseInt(discountType)          || 2;
-  discountFactor        = parseInt(discountFactor)        || 10;
-  memberAvailMaxCount   = parseInt(memberAvailMaxCount)   || 0;
-  combineFlag           = (parseInt(combineFlag) !== undefined && !isNaN(parseInt(combineFlag))) ? parseInt(combineFlag) : 1;
+function createCoupon(itemCode, discountType, discountFactor, startDateStr, endDateStr, memberAvailMaxCount, combineFlag, issueCount) {
+  discountType        = parseInt(discountType)        || 2;
+  discountFactor      = parseInt(discountFactor)      || 10;
+  memberAvailMaxCount = parseInt(memberAvailMaxCount) || 0;
+  combineFlag         = (parseInt(combineFlag) === 0 || parseInt(combineFlag) === 1) ? parseInt(combineFlag) : 0;
+  issueCount          = parseInt(issueCount)          || 1000;
+  if (issueCount < 1 || issueCount > 1000) issueCount = 1000;
+
+  if (discountType === 2 && (discountFactor < 1 || discountFactor > 99)) {
+    throw new Error('割引率は1〜99の間で指定してください');
+  }
+  if (discountType === 1 && discountFactor < 1) {
+    throw new Error('割引額は1以上で指定してください');
+  }
 
   const now = new Date();
   const now8 = Utilities.formatDate(now, 'Asia/Tokyo', 'MMddHHmm');
@@ -54,7 +63,7 @@ function createCoupon(itemCode, discountType, discountFactor, startDateStr, endD
       <couponCaption>${caption}</couponCaption>
       <couponStartDate>${startDateStr}</couponStartDate>
       <couponEndDate>${endDateStr}</couponEndDate>
-      <issueCount>1000</issueCount>
+      <issueCount>${issueCount}</issueCount>
       <itemType>${itemType}</itemType>
       <discountType>${discountType}</discountType>
       <discountFactor>${discountFactor}</discountFactor>
