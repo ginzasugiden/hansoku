@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>販促侍 | 楽天販売促進自動化ツール by GSD</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  body { background: var(--c-dark); color: #fff; }
+
+  .lp-header {
+    text-align: center;
+    padding: 64px 24px 48px;
+  }
+  .lp-header .brand {
+    font-size: 13px;
+    letter-spacing: .15em;
+    color: var(--c-gold);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  .lp-header h1 {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 700;
+    letter-spacing: .05em;
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  .lp-header h1 .sword { font-size: 1em; margin-right: 8px; }
+  .lp-header .tagline {
+    font-size: clamp(1rem, 3vw, 1.25rem);
+    color: rgba(255,255,255,.7);
+    margin-bottom: 40px;
+  }
+
+  .lp-features {
+    max-width: 680px;
+    margin: 0 auto 56px;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .feature-card {
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.1);
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .feature-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+    line-height: 1;
+    margin-top: 2px;
+  }
+  .feature-body h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #fff;
+  }
+  .feature-body p {
+    font-size: 13px;
+    color: rgba(255,255,255,.6);
+    line-height: 1.6;
+  }
+
+  .lp-cta {
+    text-align: center;
+    padding: 0 24px 80px;
+  }
+  .btn-cta {
+    display: inline-block;
+    background: var(--c-primary);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 16px 48px;
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    letter-spacing: .05em;
+    transition: background .2s, transform .15s;
+    box-shadow: 0 4px 20px rgba(192,57,43,.4);
+  }
+  .btn-cta:hover {
+    background: var(--c-accent);
+    transform: translateY(-2px);
+  }
+
+  .lp-footer {
+    text-align: center;
+    padding: 32px 24px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    font-size: 12px;
+    color: rgba(255,255,255,.4);
+    line-height: 2;
+  }
+  .lp-footer a {
+    color: var(--c-gold);
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+
+<header class="lp-header">
+  <div class="brand">by 株式会社GSD</div>
+  <h1><span class="sword">🗡️</span>販促侍</h1>
+  <p class="tagline">楽天の販促活動を、AIで自動化</p>
+</header>
+
+<section class="lp-features">
+  <div class="feature-card">
+    <div class="feature-icon">🌸</div>
+    <div class="feature-body">
+      <h3>商品を選ぶだけ</h3>
+      <p>楽天ショップの商品一覧から、販促したい商品をチェックするだけで準備完了。難しい操作は一切不要です。</p>
+    </div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">🤖</div>
+    <div class="feature-body">
+      <h3>AIが販促文言を自動生成</h3>
+      <p>Claude・ChatGPT・Gemini の3つのAIが同時に販促文言を提案。お好みの文章をワンクリックで選択できます。</p>
+    </div>
+  </div>
+  <div class="feature-card">
+    <div class="feature-icon">📱</div>
+    <div class="feature-body">
+      <h3>LINEへ自動配信</h3>
+      <p>テキスト・リッチメッセージ・カード形式でLINEへ即時または日時指定で自動配信。フォロワーへの販促が簡単に。</p>
+    </div>
+  </div>
+</section>
+
+<div class="lp-cta">
+  <a href="products.html" class="btn-cta">ツールを使う →</a>
+</div>
+
+<footer class="lp-footer">
+  © 株式会社GSD　|　お問い合わせ:
+  <a href="mailto:info@ginzasugiden.com">info@ginzasugiden.com</a>
+</footer>
+
+</body>
+</html>
