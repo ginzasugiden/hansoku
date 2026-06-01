@@ -43,6 +43,17 @@
 
 /* サブフォーム */
 .sub-field { margin-top: 10px; }
+
+/* 下部3項目グリッド */
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+@media (max-width: 700px) {
+  .bottom-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -134,8 +145,8 @@
       <div class="form-group">
         <label class="form-label">クーポン全利用回数上限</label>
         <div style="display:flex;align-items:center;gap:8px">
-          <input class="form-control" type="number" id="issue-count" min="1" max="1000" value="1000" style="width:120px">
-          <span style="color:var(--c-muted);font-size:13px">回（最大1000回）</span>
+          <input class="form-control" type="number" id="issue-count" min="0" value="1000" style="width:120px">
+          <span style="color:var(--c-muted);font-size:13px">回（最大6桁・0で無制限）</span>
         </div>
       </div>
 
@@ -146,44 +157,49 @@
         <div style="font-size:11px;color:var(--c-muted)">※ 複数選択の場合は全商品対象クーポンになります</div>
       </div>
 
-      <!-- 1ユーザーあたり利用上限 -->
-      <div class="form-group">
-        <label class="form-label">1ユーザーあたり利用上限</label>
-        <div class="toggle-group" style="margin-bottom:10px">
-          <button class="toggle-btn" id="btn-limit-count"    onclick="setMemberLimit(false)">回数を指定する</button>
-          <button class="toggle-btn active" id="btn-limit-unlimited" onclick="setMemberLimit(true)">無制限</button>
-        </div>
-        <div id="member-limit-field" style="display:none" class="sub-field">
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="form-control" type="number" id="member-limit" min="1" value="1" style="width:100px">
-            <span style="color:var(--c-muted);font-size:13px">回</span>
+      <!-- 下部3項目グリッド -->
+      <div class="bottom-grid">
+
+        <!-- 1ユーザーあたり利用上限 -->
+        <div>
+          <div class="form-label">1ユーザーあたり利用上限</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn btn-outline btn-sm" id="btn-member-limit"     onclick="setMemberLimit(false)">回数を指定する</button>
+              <button type="button" class="btn btn-primary btn-sm" id="btn-member-unlimited" onclick="setMemberLimit(true)">無制限</button>
+            </div>
+            <div id="member-limit-area" style="display:none;align-items:center;gap:6px">
+              <input type="number" id="member-limit" class="form-control" value="1" min="1" style="width:80px">
+              <span style="font-size:12px;color:var(--c-muted)">回まで</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 利用金額・個数条件 -->
-      <div class="form-group">
-        <label class="form-label">利用金額・購入個数条件</label>
-        <div class="toggle-group" style="margin-bottom:10px">
-          <button class="toggle-btn active" id="btn-cond-none"  onclick="setCondition('')">指定しない</button>
-          <button class="toggle-btn"        id="btn-cond-price" onclick="setCondition('RS003')">金額条件</button>
-          <button class="toggle-btn"        id="btn-cond-qty"   onclick="setCondition('RS004')">個数条件</button>
-        </div>
-        <div id="condition-field" style="display:none" class="sub-field">
-          <div style="display:flex;align-items:center;gap:8px">
-            <input class="form-control" type="number" id="condition-value" min="1" placeholder="例: 3000" style="width:130px">
-            <span id="condition-unit" style="color:var(--c-muted);font-size:13px">円以上の購入に利用可能</span>
+        <!-- 利用条件 -->
+        <div>
+          <div class="form-label">利用条件</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button type="button" class="btn btn-primary btn-sm condition-btn" data-condition="">指定しない</button>
+              <button type="button" class="btn btn-outline btn-sm condition-btn" data-condition="RS003">金額条件</button>
+              <button type="button" class="btn btn-outline btn-sm condition-btn" data-condition="RS004">個数条件</button>
+            </div>
+            <div id="condition-value-area" style="display:none;align-items:center;gap:6px">
+              <input type="number" id="condition-value" class="form-control" placeholder="例: 1000" min="1" style="width:100px">
+              <span id="condition-unit" style="font-size:12px;color:var(--c-muted)">円以上</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- 他クーポンとの併用 -->
-      <div class="form-group" style="margin:0">
-        <label class="form-label">他クーポンとの併用</label>
-        <div class="toggle-group">
-          <button class="toggle-btn active" id="btn-combine-no"  onclick="setCombine(0)">併用不可</button>
-          <button class="toggle-btn"        id="btn-combine-yes" onclick="setCombine(1)">併用可</button>
+        <!-- 他クーポンとの併用 -->
+        <div>
+          <div class="form-label">他クーポンとの併用</div>
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-no-combine" onclick="setCombine(0)">併用不可</button>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-combine"    onclick="setCombine(1)">併用可</button>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -303,24 +319,34 @@ function setDiscountType(type) {
 
 function setMemberLimit(unlimited) {
   memberUnlimited = unlimited;
-  setActive(['btn-limit-count', 'btn-limit-unlimited'],
-    unlimited ? 'btn-limit-unlimited' : 'btn-limit-count');
-  document.getElementById('member-limit-field').style.display = unlimited ? 'none' : '';
+  document.getElementById('btn-member-limit').className     = `btn btn-sm ${unlimited ? 'btn-outline' : 'btn-primary'}`;
+  document.getElementById('btn-member-unlimited').className = `btn btn-sm ${unlimited ? 'btn-primary' : 'btn-outline'}`;
+  const area = document.getElementById('member-limit-area');
+  area.style.display = unlimited ? 'none' : 'flex';
 }
 
 function setCondition(type) {
   selectedCondition = type;
-  setActive(['btn-cond-none', 'btn-cond-price', 'btn-cond-qty'],
-    type === '' ? 'btn-cond-none' : type === 'RS003' ? 'btn-cond-price' : 'btn-cond-qty');
-  document.getElementById('condition-field').style.display = type ? '' : 'none';
+  document.querySelectorAll('.condition-btn').forEach(btn => {
+    const isActive = btn.dataset.condition === type;
+    btn.className = `btn btn-sm condition-btn ${isActive ? 'btn-primary' : 'btn-outline'}`;
+  });
+  const area = document.getElementById('condition-value-area');
+  area.style.display = type ? 'flex' : 'none';
   document.getElementById('condition-unit').textContent =
-    type === 'RS003' ? '円以上の購入に利用可能' : '個以上の購入に利用可能';
+    type === 'RS003' ? '円以上' : '個以上';
 }
+
+// condition-btn にクリックイベントを委譲
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.condition-btn');
+  if (btn) setCondition(btn.dataset.condition);
+});
 
 function setCombine(flag) {
   combineFlag = flag;
-  setActive(['btn-combine-no', 'btn-combine-yes'],
-    flag === 0 ? 'btn-combine-no' : 'btn-combine-yes');
+  document.getElementById('btn-no-combine').className = `btn btn-sm ${flag === 0 ? 'btn-primary' : 'btn-outline'}`;
+  document.getElementById('btn-combine').className    = `btn btn-sm ${flag === 1 ? 'btn-primary' : 'btn-outline'}`;
 }
 
 // ── 次へ ──────────────────────────────────────────────────
