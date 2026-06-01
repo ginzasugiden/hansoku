@@ -227,8 +227,11 @@ function renderCouponBanner() {
   const banner = document.getElementById('coupon-banner');
   if (!coupon) { banner.style.display = 'none'; return; }
   banner.style.display = 'flex';
+  const rate = coupon.discountFactor || coupon.discountRate || '';
+  const type = coupon.discountType;
+  const unit = type == 4 ? '送料無料' : type == 1 ? `${rate}円引き` : `${rate}%OFF`;
   document.getElementById('coupon-banner-text').textContent =
-    `クーポン発行済み: ${coupon.couponCode} (${coupon.discountRate}%OFF) — ${coupon.startDate?.substring(0,10)} 〜 ${coupon.endDate?.substring(0,10)}`;
+    `クーポン発行済み: ${coupon.couponCode} (${unit}) — ${coupon.startDate?.substring(0,10)} 〜 ${coupon.endDate?.substring(0,10)}`;
   document.getElementById('coupon-banner-link').href = coupon.couponUrl || '#';
 }
 
@@ -402,7 +405,7 @@ function updatePreview() {
             </div>
             <div class="flex-footer">
               <a class="flex-btn flex-btn-primary" href="${p.itemUrl || '#'}" target="_blank">商品を見る</a>
-              ${coupon ? `<a class="flex-btn flex-btn-secondary" href="${coupon.couponUrl || '#'}" target="_blank">🎫 ${coupon.discountRate}%OFFクーポンを取得</a>` : ''}
+              ${coupon ? `<a class="flex-btn flex-btn-secondary" href="${coupon.couponUrl || '#'}" target="_blank">🎫 ${coupon.discountFactor || coupon.discountRate || ''}${coupon.discountType == 4 ? ' 送料無料' : coupon.discountType == 1 ? '円引き' : '%OFF'}クーポンを取得</a>` : ''}
             </div>
           </div>
         </div>`;

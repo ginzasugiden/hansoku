@@ -145,7 +145,7 @@ function generateWithGemini(product, context) {
     'gemini-2.0-flash',
     'gemini-2.0-flash-lite',
     'gemini-1.5-flash',
-    'gemini-1.5-flash-latest'
+    'gemini-1.5-pro'
   ];
 
   let lastError = '';
@@ -164,7 +164,7 @@ function generateWithGemini(product, context) {
       if (text) return { ...parseAIResponse_(text), model: `Gemini(${model})`, rawText: text };
     } catch (e) {
       lastError = e.message;
-      console.log(`Gemini ${model} failed: ${e.message}`);
+      console.error(`Gemini ${model} failed: ${e.message}`);
     }
   }
   throw new Error(`全Geminiモデル失敗: ${lastError}`);
