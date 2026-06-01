@@ -7,57 +7,65 @@
 
 /**
  * クーポン発行
- * @param {string} itemCode - 対象商品コード（空の場合は全商品対象）
- * @param {number} discountRate - 割引率（1〜99）
- * @param {Object} period - { days: 有効日数（最大90日）}
- * @returns {Object} { couponCode, couponUrl, discountRate, startDate, endDate }
+ * @param {string} itemCode           - 対象商品コード（空の場合は全商品対象）
+ * @param {number} discountType       - 1=定額, 2=定率, 4=送料無料
+ * @param {number} discountFactor     - 割引率(%) or 割引額(円)
+ * @param {string} startDateStr       - 開始日時 ISO8601形式（例: 2024-06-01T10:00:00+09:00）
+ * @param {string} endDateStr         - 終了日時 ISO8601形式
+ * @param {number} memberAvailMaxCount - 1ユーザーあたり利用上限（0=無制限）
+ * @param {number} combineFlag        - 併用可否（1=可, 0=不可）
+ * @returns {Object} { couponCode, couponUrl, discountType, discountFactor, startDate, endDate }
  */
-function createCoupon(itemCode, discountRate, period) {
-  if (!discountRate || discountRate < 1 || discountRate > 99) {
-    throw new Error('割引率は1〜99の間で指定してください');
-  }
+function createCoupon(itemCode, discountType, discountFactor, startDateStr, endDateStr, memberAvailMaxCount, combineFlag) {
+  discountType          = parseInt(discountType)          || 2;
+  discountFactor        = parseInt(discountFactor)        || 10;
+  memberAvailMaxCount   = parseInt(memberAvailMaxCount)   || 0;
+  combineFlag           = (parseInt(combineFlag) !== undefined && !isNaN(parseInt(combineFlag))) ? parseInt(combineFlag) : 1;
 
   const now = new Date();
-  // 開始: 現在+65分（60分制限に余裕）
-  const startDate = new Date(now.getTime() + 65 * 60 * 1000);
-  // 終了: 指定日数（最大90日）
-  const days = Math.min(period?.days || 7, 90);
-  const endDate = new Date(startDate.getTime() + days * 24 * 60 * 60 * 1000);
-  endDate.setHours(23, 59, 59, 0);
+  const now8 = Utilities.formatDate(now, 'Asia/Tokyo', 'MMddHHmm');
+  const couponName = `HANSABI_${discountFactor}${discountType === 2 ? '%' : '円'}OFF_${now8}`;
 
-  const startStr = Utilities.formatDate(startDate, 'Asia/Tokyo', "yyyy-MM-dd'T'HH:mm:ss'+09:00'");
-  const endStr   = Utilities.formatDate(endDate,   'Asia/Tokyo', "yyyy-MM-dd'T'23:59:59'+09:00'");
-  const now8     = Utilities.formatDate(now, 'Asia/Tokyo', 'MMddHHmm');
-  const couponName = `HANSABI_${discountRate}OFF_${now8}`;
+  // itemType / itemsXml 決定
+  let itemType, itemsXml;
+  if (discountType === 4) {
+    // 送料無料: itemType=5、itemsタグ完全省略
+    itemType = 5;
+    itemsXml = '';
+  } else if (itemCode) {
+    // 単一商品: itemType=1、itemsタグあり
+    itemType = 1;
+    itemsXml = `<items><item><itemUrl>${itemCode}</itemUrl></item></items>`;
+  } else {
+    // 全商品: itemType=3、itemsタグ完全省略
+    itemType = 3;
+    itemsXml = '';
+  }
 
-  // 対象商品設定
-  // itemCode あり → itemType=3, items指定
-  // itemCode なし → itemType=4(受注=全商品), items空タグ
-  const itemType = itemCode ? 3 : 4;
-  const itemsXml = itemCode
-    ? `<items><item><itemUrl>${itemCode}</itemUrl></item></items>`
-    : `<items/>`;
+  const caption = discountType === 4 ? '送料無料クーポン 銀座東京フラワー'
+                : discountType === 2 ? `${discountFactor}%OFFクーポン 銀座東京フラワー`
+                : `${discountFactor}円OFFクーポン 銀座東京フラワー`;
 
   const xmlBody = `<?xml version="1.0" encoding="UTF-8"?>
 <request>
   <couponIssueRequest>
     <coupon>
       <couponName>${couponName}</couponName>
-      <couponCaption>${discountRate}%OFFクーポン 銀座東京フラワー</couponCaption>
-      <couponStartDate>${startStr}</couponStartDate>
-      <couponEndDate>${endStr}</couponEndDate>
+      <couponCaption>${caption}</couponCaption>
+      <couponStartDate>${startDateStr}</couponStartDate>
+      <couponEndDate>${endDateStr}</couponEndDate>
       <issueCount>1000</issueCount>
       <itemType>${itemType}</itemType>
-      <discountType>2</discountType>
-      <discountFactor>${discountRate}</discountFactor>
-      <memberAvailMaxCount>1</memberAvailMaxCount>
+      <discountType>${discountType}</discountType>
+      <discountFactor>${discountFactor}</discountFactor>
+      <memberAvailMaxCount>${memberAvailMaxCount}</memberAvailMaxCount>
       <purchaseHistoryCond><type>0</type></purchaseHistoryCond>
       <multiRankCond><rankCond>0</rankCond></multiRankCond>
       <genderCond>NONE</genderCond>
       <ageRangeCond><lowerBound>0</lowerBound><upperBound>0</upperBound></ageRangeCond>
       <birthmonthCond>0</birthmonthCond>
       <multiPrefectureCond><prefectureCond>NONE</prefectureCond></multiPrefectureCond>
-      <combineFlag>1</combineFlag>
+      <combineFlag>${combineFlag}</combineFlag>
       <displayFlag>1</displayFlag>
       ${itemsXml}
       <otherConditions/>
@@ -77,20 +85,13 @@ function createCoupon(itemCode, discountRate, period) {
   const text = res.getContentText();
   console.log('Coupon API response:', text);
 
-  // XmlServiceでパース
-  try {
-    const xml = XmlService.parse(text);
-    const root = xml.getRootElement();
-    const errors = root.getChild('errors');
-    if (errors) {
-      const msg = errors.getChild('error')?.getChild('message')?.getText() || 'unknown error';
-      throw new Error(`クーポンAPI: ${msg}`);
-    }
-  } catch (e) {
-    if (e.message.startsWith('クーポンAPI:')) throw e;
-    // XMLパースエラーは無視（errorsなし=成功とみなす）
+  if (text.includes('<errors>')) {
+    const msgMatch = text.match(/<message>([^<]+)<\/message>/g);
+    const errMsg = msgMatch && msgMatch[1]
+      ? msgMatch[1].replace(/<\/?message>/g, '')
+      : text.substring(0, 200);
+    throw new Error(`クーポンAPI: ${errMsg}`);
   }
-
   if (code >= 400) throw new Error(`クーポンAPI HTTP ${code}`);
 
   const couponCodeMatch = text.match(/<couponCode>([^<]+)<\/couponCode>/);
@@ -101,11 +102,11 @@ function createCoupon(itemCode, discountRate, period) {
     : `https://coupon.rakuten.co.jp/detail/${couponCode}`;
 
   appendToSheet_('クーポン履歴', [
-    couponCode, itemCode || '全商品', `${discountRate}%OFF`,
-    startStr, endStr, couponUrl
+    couponCode, itemCode || '全商品', caption,
+    startDateStr, endDateStr, couponUrl
   ]);
 
-  return { couponCode, couponUrl, discountRate, startDate: startStr, endDate: endStr };
+  return { couponCode, couponUrl, discountType, discountFactor, startDate: startDateStr, endDate: endDateStr };
 }
 
 /**
@@ -130,7 +131,24 @@ function getCoupons() {
  */
 function testCreateCoupon() {
   try {
-    const result = createCoupon('', 10, { days: 7 });
+    const now = new Date();
+    const startDate = new Date(now.getTime() + 65 * 60 * 1000);
+    if (startDate.getMinutes() > 0) {
+      startDate.setHours(startDate.getHours() + 1);
+      startDate.setMinutes(0); startDate.setSeconds(0); startDate.setMilliseconds(0);
+    }
+    const endDate = new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+    endDate.setHours(23, 59, 59, 0);
+
+    const result = createCoupon(
+      '',                          // itemCode（全商品）
+      2,                           // discountType（定率）
+      10,                          // discountFactor（10%）
+      formatISO8601_(startDate),   // startDate
+      formatISO8601_(endDate),     // endDate
+      0,                           // memberAvailMaxCount（無制限）
+      0                            // combineFlag（不可）
+    );
     console.log('SUCCESS:', JSON.stringify(result));
   } catch (e) {
     console.log('ERROR:', e.message);

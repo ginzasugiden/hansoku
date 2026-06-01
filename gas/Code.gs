@@ -62,7 +62,15 @@ function doPost(e) {
         return successResponse(generateAll(body.product, body.context));
 
       case 'createCoupon':
-        return successResponse(createCoupon(body.itemCode, body.discountRate, body.period));
+        return successResponse(createCoupon(
+          body.itemCode,
+          body.discountType,
+          body.discountFactor,
+          body.startDate,
+          body.endDate,
+          body.memberAvailMaxCount,
+          body.combineFlag
+        ));
 
       case 'sendLine':
         return successResponse(dispatchLineMessage_(body));
