@@ -3,12 +3,34 @@
  * GAS WebApp との通信・状態管理
  */
 
-// ─── 設定（GitHub Pagesにデプロイ前に書き換え） ───────────
+// ─── 設定 ────────────────────────────────────────────────
 const HANASABI_CONFIG = {
   GAS_URL: 'https://script.google.com/macros/s/AKfycbzKdIcR7ys61ZYk5oZHxbX3KGoc4LjFHjcb0DQRt_7MKaS5ORBXo-XxXFRobYISyd2f/exec',
-  TOKEN:   'RJV2bKtCHtpJjJlRoFoTwbObSmuzUtfr'
+  get TOKEN() {
+    return sessionStorage.getItem('hansabi_token') || '';
+  }
 };
 // ──────────────────────────────────────────────────────────
+
+// ─── 認証 ─────────────────────────────────────────────────
+
+/** 認証チェック: 未ログインなら login.html にリダイレクト */
+function requireAuth() {
+  if (sessionStorage.getItem('hansabi_auth') !== '1') {
+    location.href = 'login.html';
+    return false;
+  }
+  return true;
+}
+
+/** ログアウト */
+function logout() {
+  sessionStorage.removeItem('hansabi_auth');
+  sessionStorage.removeItem('hansabi_token');
+  location.href = 'login.html';
+}
+
+// ─── ストア ───────────────────────────────────────────────
 
 /** 選択された商品を一時保存（sessionStorage） */
 const store = {
@@ -98,9 +120,4 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.site-header nav a').forEach(a => {
     if (path.endsWith(a.getAttribute('href') || '')) a.classList.add('active');
   });
-
-  // config未設定警告
-  if (HANASABI_CONFIG.GAS_URL.includes('YOUR_DEPLOYMENT_ID')) {
-    toast('⚠️ GAS_URL未設定: assets/app.js を編集してください', 'error');
-  }
 });

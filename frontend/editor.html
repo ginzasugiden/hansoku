@@ -80,6 +80,7 @@
     <a href="products.html">商品選択</a>
     <a href="editor.html" class="active">AI文言生成</a>
     <a href="scheduler.html">配信管理</a>
+    <button class="btn btn-outline btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.3)" onclick="logout()">ログアウト</button>
   </nav>
 </header>
 
@@ -201,6 +202,8 @@
 
 <script src="assets/app.js"></script>
 <script>
+requireAuth();
+
 let selectedResult = null;
 let currentMsgType = 'text';
 

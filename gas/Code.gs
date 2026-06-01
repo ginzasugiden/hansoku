@@ -12,13 +12,20 @@ function doGet(e) {
   const params = e.parameter || {};
   const action = params.action || '';
 
-  // Bearer認証（CORS preflight用にOPTIONS相当は通過させる）
-  const auth = params.token || (e.headers && e.headers['Authorization']) || '';
-  if (!verifyBearerToken_(auth.replace ? auth : `Bearer ${auth}`)) {
-    // tokenパラメータでの簡易認証も許可（フロントからのGET用）
-    if (params.token !== CONFIG.APP_BEARER_TOKEN) {
-      return errorResponse('Unauthorized', 401);
+  // loginは認証不要
+  if (action === 'login') {
+    const pw = params.password || '';
+    const correct = PropertiesService.getScriptProperties().getProperty('FRONTEND_PASSWORD');
+    if (pw === correct) {
+      return successResponse({ token: CONFIG.APP_BEARER_TOKEN });
+    } else {
+      return errorResponse('パスワードが違います', 401);
     }
+  }
+
+  // token認証チェック
+  if (params.token !== CONFIG.APP_BEARER_TOKEN) {
+    return errorResponse('Unauthorized', 401);
   }
 
   try {

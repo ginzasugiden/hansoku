@@ -65,6 +65,7 @@
     <a href="products.html">商品選択</a>
     <a href="editor.html">AI文言生成</a>
     <a href="scheduler.html">配信管理</a>
+    <button class="btn btn-outline btn-sm" style="color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.3)" onclick="logout()">ログアウト</button>
   </nav>
 </header>
 
@@ -215,6 +216,8 @@
 
 <script src="assets/app.js"></script>
 <script>
+requireAuth();
+
 // ── 状態 ──────────────────────────────────────────────────
 let issuing       = false;
 let discountType  = 2;      // 1=定額 2=定率 4=送料無料

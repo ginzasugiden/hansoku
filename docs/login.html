@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ログイン — 販促侍</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-surface2);
+}
+.login-card {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+.login-logo { font-size: 32px; margin-bottom: 8px; }
+.login-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.login-sub { font-size: 13px; color: var(--c-muted); margin-bottom: 28px; }
+.login-error { color: var(--c-primary); font-size: 13px; margin-top: 12px; display:none; }
+</style>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">🗡️</div>
+    <div class="login-title">販促侍</div>
+    <div class="login-sub">by 株式会社GSD</div>
+    <div class="form-group">
+      <label class="form-label">パスワード</label>
+      <input class="form-control" type="password" id="password"
+             placeholder="パスワードを入力" autocomplete="current-password"
+             onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doLogin()" id="login-btn">
+      ログイン
+    </button>
+    <div class="login-error" id="login-error">パスワードが違います</div>
+  </div>
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzKdIcR7ys61ZYk5oZHxbX3KGoc4LjFHjcb0DQRt_7MKaS5ORBXo-XxXFRobYISyd2f/exec';
+
+async function doLogin() {
+  const pw = document.getElementById('password').value;
+  const btn = document.getElementById('login-btn');
+  const err = document.getElementById('login-error');
+  if (!pw) return;
+
+  btn.disabled = true;
+  btn.textContent = '認証中...';
+  err.style.display = 'none';
+
+  try {
+    const res = await fetch(`${GAS_URL}?action=login&password=${encodeURIComponent(pw)}`);
+    const data = await res.json();
+    if (data.ok && data.data?.token) {
+      sessionStorage.setItem('hansabi_token', data.data.token);
+      sessionStorage.setItem('hansabi_auth', '1');
+      location.href = 'products.html';
+    } else {
+      err.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'ログイン';
+    }
+  } catch (e) {
+    err.style.display = 'block';
+    err.textContent = '接続エラー: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = 'ログイン';
+  }
+}
+
+// すでにログイン済みなら直接遷移
+if (sessionStorage.getItem('hansabi_auth') === '1') {
+  location.href = 'products.html';
+}
+</script>
+</body>
+</html>

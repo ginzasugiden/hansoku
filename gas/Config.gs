@@ -58,10 +58,23 @@ function setupProperties() {
     'LINE_CHANNEL_ACCESS_TOKEN': 'ここにAccessToken',
     'APP_BEARER_TOKEN':       generateBearerToken_(),
     'SHEET_ID':               'ここにスプレッドシートID',
-    'FRONTEND_ORIGIN':        'https://ginzasugiden.github.io'
+    'FRONTEND_ORIGIN':        'https://ginzasugiden.github.io',
+    // 'FRONTEND_PASSWORD': 'ここに管理画面のパスワードを設定'
   });
   console.log('✅ PropertiesService設定完了');
   console.log('APP_BEARER_TOKEN:', props.getProperty('APP_BEARER_TOKEN'));
+}
+
+/**
+ * フロントエンドパスワードをPropertiesServiceに設定
+ * ★ パスワードを書き換えてから手動実行してください ★
+ */
+function setFrontendPassword() {
+  PropertiesService.getScriptProperties().setProperty(
+    'FRONTEND_PASSWORD',
+    'ここにパスワードを設定してから実行'
+  );
+  console.log('FRONTEND_PASSWORD設定完了');
 }
 
 /** ランダムBearerToken生成 */
