@@ -1,12 +1,14 @@
-# 🗡️ HANSABI 販売促進侍
+# 🗡️ 販促侍 by GSD
 
-楽天商品を選択し、AI（Claude/GPT/Gemini）で販促文言を自動生成、LINEへテキスト・リッチ・カード形式で自動配信するSaaSツール。
+楽天ショップの販売促進を、AIの力で自動化するツールです。
 
-## 構成
+## ご利用をご希望の方
 
-- `gas/` — Google Apps Script（バックエンド）
-- `frontend/` — GitHub Pages（フロントエンド）
+株式会社GSD（銀座スギデン）が提供するECサポートサービスです。  
+ご興味のある方はお気軽にお問い合わせください。
 
-## セットアップ
+**info@ginzasugiden.com**
 
-`docs/setup.md` を参照してください。
+---
+
+© 株式会社GSD All rights reserved.
